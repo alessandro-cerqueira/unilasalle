@@ -83,6 +83,36 @@ export default class DaoAluno {
 
   //-----------------------------------------------------------------------------------------//
 
+  async obterAlunoPelaMatricula(matr) {
+    let connection = await this.obterConexao();      
+    let promessa = new Promise(function(resolve, reject) {
+      let transacao;
+      let store;
+      let indice;
+      try {
+        transacao = connection.transaction(["AlunoST"], "readonly");
+        store = transacao.objectStore("AlunoST");
+        indice = store.index('idxMatricula');
+      } 
+      catch (e) {
+        reject(new ModelError("Erro: " + e));
+      }
+
+      let consulta = indice.get(matr);
+      consulta.onsuccess = function(event) { 
+        if(consulta.result != null)
+          resolve(Aluno.assign(consulta.result)); 
+        else
+          resolve(null);
+      };
+      consulta.onerror = function(event) { reject(null); };
+    });
+    let aluno = await promessa;
+    return aluno;
+  }
+
+  //-----------------------------------------------------------------------------------------//
+
   async obterAlunosPeloAutoIncrement() {
     let connection = await this.obterConexao();      
     let promessa = new Promise(function(resolve, reject) {
@@ -121,7 +151,6 @@ export default class DaoAluno {
         reject(new ModelError("Não foi possível incluir o aluno", event.target.error));
       };
       let store = transacao.objectStore("AlunoST");
-      alert(JSON.stringify(aluno));
       let requisicao = store.add(Aluno.deassign(aluno));
       requisicao.onsuccess = function(event) {
           resolve(true);              
@@ -139,18 +168,22 @@ export default class DaoAluno {
       transacao.onerror = event => {
         reject(new ModelError("Não foi possível alterar o aluno", event.target.error));
       };
-      let store = transacao.objectStore("AlunoST");
-      store.openCursor().onsuccess = event => {
+      let store = transacao.objectStore("AlunoST");     
+      let indice = store.index('idxMatricula');
+      var keyValue = IDBKeyRange.only(aluno.getMatricula());
+      indice.openCursor(keyValue).onsuccess = event => {
         const cursor = event.target.result;
         if (cursor) {
-          if (cursor.value.matricula == aluno.matricula) {
-            const request = cursor.update(aluno);
+          if (cursor.value.matricula == aluno.getMatricula()) {
+            const request = cursor.update(Aluno.deassign(aluno));
             request.onsuccess = () => {
               console.log("[DaoAluno.alterar] Cursor update - Sucesso ");
               resolve("Ok");
+              return;
             };
-          }
-          cursor.continue();
+          } 
+        } else {
+          reject(new ModelError("Aluno com a matrícula " + aluno.getMatricula() + " não encontrado!",""));
         }
       };
     });
@@ -167,17 +200,21 @@ export default class DaoAluno {
         reject(new ModelError("Não foi possível excluir o aluno", event.target.error));
       };
       let store = transacao.objectStore("AlunoST");
-      store.openCursor().onsuccess = event => {
+      let indice = store.index('idxMatricula');
+      var keyValue = IDBKeyRange.only(aluno.getMatricula());
+      indice.openCursor(keyValue).onsuccess = event => {
         const cursor = event.target.result;
         if (cursor) {
-          if (cursor.value.matricula == aluno.matricula) {
+          if (cursor.value.matricula == aluno.getMatricula()) {
             const request = cursor.delete();
-            request.onsuccess = () => { resolve("Ok"); };
-            return true;
+            request.onsuccess = () => { 
+              resolve("Ok"); 
+            };
+            return;
           }
-          cursor.continue();
+        } else {
+          reject(new ModelError("Aluno com a matrícula " + aluno.getMatricula() + " não encontrado!",""));
         }
-        reject(new ModelError("Aluno com a matrícula" + aluno.matricula + " não encontrado!",""));
       };
     });
     return false;
