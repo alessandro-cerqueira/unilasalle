@@ -12,7 +12,7 @@ export default class ViewerAluno {
     this.#ctrl = ctrl;
     this.divNavegar  = this.obterElemento('divNavegar'); 
     this.divComandos = this.obterElemento('divComandos'); 
-    this.divPosicao  = this.obterElemento('divPosicao'); 
+    this.divAviso    = this.obterElemento('divAviso'); 
     this.divDialogo  = this.obterElemento('divDialogo');
 
     this.btPrimeiro  = this.obterElemento('btPrimeiro');
@@ -40,7 +40,8 @@ export default class ViewerAluno {
     this.btUltimo.onclick = fnBtUltimo; 
 
     this.btIncluir.onclick = fnBtIncluir; 
-    this.btAlterar.onclick = fnBtIncluir; 
+    this.btAlterar.onclick = fnBtAlterar; 
+    this.btExcluir.onclick = fnBtExcluir; 
 
     this.btOk.onclick = fnBtOk; 
     this.btCancelar.onclick = fnBtCancelar; 
@@ -69,13 +70,21 @@ export default class ViewerAluno {
   apresentar(pos, qtde, aluno) {    
     
     this.configurarNavegacao( pos <= 1 , pos == qtde );   
-    if(aluno != null) {
+
+    if(aluno == null) {
+      this.tfMatricula.value = "";
+      this.tfCpf.value       = "";
+      this.tfNome.value      = "";
+      this.tfEmail.value     = "";
+      this.tfTelefone.value  = "";
+      this.divAviso.innerHTML = " Número de Alunos: 0";
+    } else {
       this.tfMatricula.value = aluno.getMatricula();
       this.tfCpf.value       = aluno.getCpf();
       this.tfNome.value      = aluno.getNome();
       this.tfEmail.value     = aluno.getEmail();
       this.tfTelefone.value  = aluno.getTelefone();
-      this.divPosicao.innerHTML = "#" + pos + "/" + qtde;
+      this.divAviso.innerHTML = "Posição: " + pos + " | Número de Alunos: " + qtde;
     }
   }
 
@@ -90,20 +99,33 @@ export default class ViewerAluno {
   
 //------------------------------------------------------------------------//
   
-  editando(operacao) { 
+  statusEdicao(operacao) { 
     this.divNavegar.hidden = true;
     this.divComandos.hidden = true;
     this.divDialogo.hidden = false; 
-    this.tfMatricula.disabled = false;
-    this.tfCpf.disabled = false;
-    this.tfNome.disabled = false;
-    this.tfEmail.disabled = false;
-    this.tfTelefone.disabled = false;    
+    
+    if(operacao != Status.EXCLUINDO) {
+      this.tfCpf.disabled = false;
+      this.tfNome.disabled = false;
+      this.tfEmail.disabled = false;
+      this.tfTelefone.disabled = false;
+      this.divAviso.innerHTML = "";      
+    } else {
+      this.divAviso.innerHTML = "Deseja excluir este registro?";      
+    }
+    if(operacao == Status.INCLUINDO) {
+      this.tfMatricula.disabled = false;
+      this.tfMatricula.value = "";
+      this.tfCpf.value = "";
+      this.tfNome.value = "";
+      this.tfEmail.value = "";
+      this.tfTelefone.value = "";
+    }
   }
 
 //------------------------------------------------------------------------//
   
-  apresentando() { 
+  statusApresentacao() { 
     this.tfCpf.disabled = true;
     this.divNavegar.hidden = false;
     this.divComandos.hidden = false;
@@ -156,26 +178,49 @@ function fnBtUltimo() {
 }
 //------------------------------------------------------------------------//
 
-
 function fnBtIncluir() {
   // Aqui, o 'this' é o objeto Button. Eu adicionei o atributo 'viewer'
   // no botão para poder executar a instrução abaixo.
   this.viewer.getCtrl().iniciarIncluir();
+}
+
+//------------------------------------------------------------------------//
+
+function fnBtAlterar() {
+  // Aqui, o 'this' é o objeto Button. Eu adicionei o atributo 'viewer'
+  // no botão para poder executar a instrução abaixo.
+  this.viewer.getCtrl().iniciarAlterar();
   
 }
 
 //------------------------------------------------------------------------//
 
+function fnBtExcluir() {
+  // Aqui, o 'this' é o objeto Button. Eu adicionei o atributo 'viewer'
+  // no botão para poder executar a instrução abaixo.
+  this.viewer.getCtrl().iniciarExcluir();
+}
+
+//------------------------------------------------------------------------//
+
 function fnBtOk() {
-  if(this.viewer.getCtrl().getStatus() == Status.INCLUINDO) {
-    const matricula = this.viewer.tfMatricula.value;
-    const cpf = this.viewer.tfCpf.value;
-    const nome = this.viewer.tfNome.value;
-    const email = this.viewer.tfEmail.value;
-    const telefone = this.viewer.tfTelefone.value;
-    this.viewer.getCtrl().incluir(matricula, cpf, nome, email, telefone); 
-  }
-  
+  const matricula = this.viewer.tfMatricula.value;
+  const cpf = this.viewer.tfCpf.value;
+  const nome = this.viewer.tfNome.value;
+  const email = this.viewer.tfEmail.value;
+  const telefone = this.viewer.tfTelefone.value;
+    
+  // Como defini que o método "efetivar" é um dos métodos incluir, excluir ou alterar
+  // não estou precisando colocar os ninhos de IF abaixo.
+  this.viewer.getCtrl().efetivar(matricula, cpf, nome, email, telefone); 
+
+  // if(this.viewer.getCtrl().getStatus() == Status.INCLUINDO) {
+  //  this.viewer.getCtrl().fnEfetivar(matricula, cpf, nome, email, telefone); 
+  //} else if(this.viewer.getCtrl().getStatus() == Status.ALTERANDO) {
+  //  this.viewer.getCtrl().alterar(matricula, cpf, nome, email, telefone); 
+  //} else if(this.viewer.getCtrl().getStatus() == Status.EXCLUINDO) {
+  //  this.viewer.getCtrl().excluir(matricula, cpf, nome, email, telefone); 
+  //}
 }
 
 //------------------------------------------------------------------------//

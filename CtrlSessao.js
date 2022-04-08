@@ -13,6 +13,14 @@ export default class CtrlSessao {
   //-----------------------------------------------------------------------------------------//
 }
 
+var sessao = new CtrlSessao();
+
+//------------------------------------------------------------------------//
+
+//
+// O código abaixo está relacionado com o deploy do Service Worker. Isso permite que nossa 
+// aplicação se torne um App para Dispositivos Mobile
+//
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js', {scope: '/'})
   .then(function(reg) {
@@ -24,6 +32,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-var sessao = new CtrlSessao();
 
 //------------------------------------------------------------------------//
