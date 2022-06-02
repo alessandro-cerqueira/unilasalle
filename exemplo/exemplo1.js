@@ -42,15 +42,3 @@ funcA();
 funcB();
 funcC(); 
 funcD();
-
-
-
-
-
-
-
-
-
-
-
-
