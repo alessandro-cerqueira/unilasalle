@@ -29,10 +29,10 @@ function funcConteudo(resolve,reject) {
   //
   setTimeout(() => { 
         let sorteio = Math.random() * 100;
-        if(sorteio < 90)
+        if(sorteio < 50)
           resolve("(" + sorteio + ") Resolvido após Timeout: " + tokenGlobal);
         else
-          reject( "(" + sorteio + ") Rejeitado após o Timeout: " + tokenGlobal);
+          resolve( "(" + sorteio + ") Rejeitado após o Timeout: " + tokenGlobal);
       }, 2000);
 }
 
@@ -63,7 +63,6 @@ async function exemplo () {
     console.log( "c) resultado = " + await resultado );     // Lista o resultado
   }
   catch(error) { 
-    console.log("DEU ERRO: " + error );  
     alert('Erro:' + error);
   }
 }
